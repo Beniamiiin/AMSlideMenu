@@ -37,6 +37,14 @@
 
 #define kAutoresizingMaskAll UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleLeftMargin|UIViewAutoresizingFlexibleRightMargin|UIViewAutoresizingFlexibleTopMargin|UIViewAutoresizingFlexibleBottomMargin
 
+#define IS_IPAD (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
+
+#define DEVICE_ORIENTATION [UIApplication sharedApplication].statusBarOrientation
+#define PORTRAIT_ORIENTATION UIDeviceOrientationIsPortrait(DEVICE_ORIENTATION)
+#define LANDSCAPE_ORIENTATION UIDeviceOrientationIsLandscape(DEVICE_ORIENTATION)
+
+#define IS_IPAD_LANDSCAPE (LANDSCAPE_ORIENTATION && IS_IPAD)
+
 typedef enum {
   AMSlidePanningStateStopped,
   AMSlidePanningStateLeft,
@@ -509,6 +517,8 @@ static NSMutableArray *allInstances;
 #endif
     /*******************************************/
     
+    if ( IS_IPAD && UIInterfaceOrientationIsLandscape(initialOrientation) )
+        [self openLeftMenuAnimated:NO];
     
     [self.currentActiveNVC.view addGestureRecognizer:self.panGesture];
     
@@ -562,6 +572,9 @@ static NSMutableArray *allInstances;
     
     CGRect frame = self.currentActiveNVC.view.frame;
     frame.origin.x = [self leftMenuWidth];
+    
+    if ( IS_IPAD_LANDSCAPE )
+        frame.size.width = [UIScreen mainScreen].bounds.size.width - [self leftMenuWidth];
     
     [UIView animateWithDuration: animated ? self.openAnimationDuration : 0 delay:0.0 options:self.openAnimationCurve animations:^{
         self.currentActiveNVC.view.frame = frame;
@@ -638,6 +651,9 @@ static NSMutableArray *allInstances;
 
 - (void)closeLeftMenuAnimated:(BOOL)animated
 {
+    if ( IS_IPAD_LANDSCAPE )
+        return;
+    
     if (self.slideMenuDelegate && [self.slideMenuDelegate respondsToSelector:@selector(leftMenuWillClose)])
         [self.slideMenuDelegate leftMenuWillClose];
     
