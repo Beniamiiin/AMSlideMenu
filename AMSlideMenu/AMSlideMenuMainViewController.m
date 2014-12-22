@@ -575,8 +575,15 @@ static NSMutableArray *allInstances;
     CGRect frame = self.currentActiveNVC.view.frame;
     frame.origin.x = [self leftMenuWidth];
     
+    CGSize size = [UIScreen mainScreen].bounds.size;
+    
+    float width = size.width;
+    
+    if ( size.height > width )
+        width = size.height;
+    
     if ( IS_IPAD_LANDSCAPE )
-        frame.size.width = [UIScreen mainScreen].bounds.size.width - [self leftMenuWidth];
+        frame.size.width = width - [self leftMenuWidth];
     
     [UIView animateWithDuration: animated ? self.openAnimationDuration : 0 delay:0.0 options:self.openAnimationCurve animations:^{
         self.currentActiveNVC.view.frame = frame;
@@ -661,7 +668,15 @@ static NSMutableArray *allInstances;
     
     CGRect frame = self.currentActiveNVC.view.frame;
     frame.origin.x = 0;
-    frame.size.width = [UIScreen mainScreen].bounds.size.width;
+    
+    CGSize size = [UIScreen mainScreen].bounds.size;
+    
+    float width = size.width;
+    
+    if ( size.height < width )
+        width = size.height;
+    
+    frame.size.width = width;
     
     [UIView animateWithDuration:animated ? self.closeAnimationDuration : 0 delay:0 options:self.closeAnimationCurve animations:^{
         self.currentActiveNVC.view.frame = frame;
