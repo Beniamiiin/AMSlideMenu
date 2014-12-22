@@ -914,7 +914,7 @@ static NSMutableArray *allInstances;
     frame.size = self.currentActiveNVC.view.bounds.size;
     self.overlayView.frame = frame;
     self.overlayView.layer.zPosition = 10000;
-    self.overlayView.backgroundColor = [UIColor redColor];
+    self.overlayView.backgroundColor = [UIColor clearColor];
     
     [self.currentActiveNVC.view addSubview:self.overlayView];
     
