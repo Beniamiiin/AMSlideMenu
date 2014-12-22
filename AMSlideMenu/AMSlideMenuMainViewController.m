@@ -46,9 +46,9 @@
 #define IS_IPAD_LANDSCAPE (LANDSCAPE_ORIENTATION && IS_IPAD)
 
 typedef enum {
-  AMSlidePanningStateStopped,
-  AMSlidePanningStateLeft,
-  AMSlidePanningStateRight
+    AMSlidePanningStateStopped,
+    AMSlidePanningStateLeft,
+    AMSlidePanningStateRight
 } AMSlidePanningState;
 
 @interface AMSlideMenuMainViewController ()<UIGestureRecognizerDelegate>
@@ -92,7 +92,7 @@ static NSMutableArray *allInstances;
     
     NSValue *value = [NSValue valueWithNonretainedObject:self];
     [allInstances addObject:value];
-//    [allInstances addObject:self];
+    //    [allInstances addObject:self];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleInterfaceOrientationChangedNotification:) name:UIDeviceOrientationDidChangeNotification object:nil];
     initialOrientation = [UIApplication sharedApplication].statusBarOrientation;
@@ -110,7 +110,7 @@ static NSMutableArray *allInstances;
         {
             self.overlayView.frame = CGRectMake(0, 0, self.currentActiveNVC.view.frame.size.width, self.currentActiveNVC.view.frame.size.height);
         }
-
+        
         double delayInSeconds = 0.25f;
         dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
         dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
@@ -139,6 +139,11 @@ static NSMutableArray *allInstances;
     {
         self.currentActiveNVC.view.layer.shadowOpacity = 0;
     }
+    
+    if ( IS_IPAD && UIInterfaceOrientationIsLandscape(toInterfaceOrientation) )
+    {
+        [self.overlayView removeFromSuperview];
+    }
 }
 
 - (void)dealloc
@@ -166,7 +171,7 @@ static NSMutableArray *allInstances;
 
 + (AMSlideMenuMainViewController *)getInstanceForVC:(UIViewController *)vc
 {
-
+    
     if (allInstances.count == 1)
         return [allInstances[0] nonretainedObjectValue];
     
@@ -237,7 +242,7 @@ static NSMutableArray *allInstances;
 
 - (NSIndexPath *)initialIndexPathForRightMenu
 {
-    return [NSIndexPath indexPathForRow:0 inSection:0];    
+    return [NSIndexPath indexPathForRow:0 inSection:0];
 }
 
 - (NSString *)segueIdentifierForIndexPathInLeftMenu:(NSIndexPath *)indexPath
@@ -300,10 +305,10 @@ static NSMutableArray *allInstances;
 - (void)configureDarknessView
 {
     [self.darknessView removeFromSuperview];
-
+    
     self.darknessView = [[UIView alloc] initWithFrame:self.currentActiveNVC.view.bounds];
     self.darknessView.backgroundColor = [UIColor blackColor];
-
+    
     switch (self.menuState) {
         case AMSlideMenuClosed:
             self.darknessView.alpha = 0;
@@ -410,19 +415,19 @@ static NSMutableArray *allInstances;
     /**********************************
      *  If using storyboard
      **********************************/
-#ifndef AMSlideMenuWithoutStoryboards    
+#ifndef AMSlideMenuWithoutStoryboards
     if ([self primaryMenu] == AMPrimaryMenuLeft)
     {
         @try
         {
             [self performSegueWithIdentifier:@"leftMenu" sender:self];
-
-            @try {
-                [self performSegueWithIdentifier:@"rightMenu" sender:self];
-            }
-            @catch (NSException *exception) {
-                
-            }
+            
+            //            @try {
+            //                [self performSegueWithIdentifier:@"rightMenu" sender:self];
+            //            }
+            //            @catch (NSException *exception) {
+            //
+            //            }
         }
         @catch (NSException *exception)
         {
@@ -440,7 +445,7 @@ static NSMutableArray *allInstances;
                 [self performSegueWithIdentifier:@"leftMenu" sender:self];
             }
             @catch (NSException *exception) {
-        
+                
             }
         }
         @catch (NSException *exception)
@@ -462,10 +467,10 @@ static NSMutableArray *allInstances;
         {
             self.leftSegue = [[AMSlideMenuLeftMenuSegue alloc] initWithIdentifier:@"leftMenu" source:self destination:self.leftMenu];
             [self.leftSegue perform];
-
+            
             // Fixing strange bug with iPad iOS6 when starting whit landscape orientation
             if (SYSTEM_VERSION_LESS_THAN(@"7.0") && UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad && UIInterfaceOrientationIsLandscape([UIApplication sharedApplication].statusBarOrientation)) {
-
+                
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                     [self.leftSegue perform];
                 });
@@ -475,10 +480,10 @@ static NSMutableArray *allInstances;
         {
             self.rightSegue = [[AMSlideMenuRightMenuSegue alloc] initWithIdentifier:@"rightSegue" source:self destination:self.rightMenu];
             [self.rightSegue perform];
-
+            
             // Fixing strange bug with iPad iOS6 when starting whit landscape orientation
             if (SYSTEM_VERSION_LESS_THAN(@"7.0") && UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad && UIInterfaceOrientationIsLandscape([UIApplication sharedApplication].statusBarOrientation)) {
-
+                
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                     [self.rightSegue perform];
                 });
@@ -517,9 +522,6 @@ static NSMutableArray *allInstances;
 #endif
     /*******************************************/
     
-    if ( IS_IPAD && UIInterfaceOrientationIsLandscape(initialOrientation) )
-        [self openLeftMenuAnimated:NO];
-    
     [self.currentActiveNVC.view addGestureRecognizer:self.panGesture];
     
     self.isInitialStart = NO;
@@ -547,7 +549,7 @@ static NSMutableArray *allInstances;
     // Disabling scrollsToTop for menu's tableviews
     self.leftMenu.tableView.scrollsToTop = NO;
     self.rightMenu.tableView.scrollsToTop = NO;
-
+    
 }
 
 /*----------------------------------------------------*/
@@ -659,7 +661,8 @@ static NSMutableArray *allInstances;
     
     CGRect frame = self.currentActiveNVC.view.frame;
     frame.origin.x = 0;
-
+    frame.size.width = [UIScreen mainScreen].bounds.size.width;
+    
     [UIView animateWithDuration:animated ? self.closeAnimationDuration : 0 delay:0 options:self.closeAnimationCurve animations:^{
         self.currentActiveNVC.view.frame = frame;
         
@@ -705,7 +708,7 @@ static NSMutableArray *allInstances;
     
     [UIView animateWithDuration:animated ? self.closeAnimationDuration : 0 delay:0 options:self.closeAnimationCurve animations:^{
         self.currentActiveNVC.view.frame = frame;
-
+        
         if ([self deepnessForRightMenu])
         {
             self.rightMenu.view.layer.transform = kMenuTransformScale;
@@ -721,7 +724,7 @@ static NSMutableArray *allInstances;
     } completion:^(BOOL finished) {
         
         
-        [self.overlayView removeFromSuperview];        
+        [self.overlayView removeFromSuperview];
         [self desableGestures];
         self.menuState = AMSlideMenuClosed;
         [self.currentActiveNVC.view addGestureRecognizer:self.panGesture];
@@ -765,7 +768,7 @@ static NSMutableArray *allInstances;
                 {
                     [self.currentActiveNVC.view removeFromSuperview];
                 }
-                    self.currentActiveNVC = self.initialViewController;
+                self.currentActiveNVC = self.initialViewController;
                 
                 [self.view addSubview:self.currentActiveNVC.view];
                 
@@ -793,7 +796,7 @@ static NSMutableArray *allInstances;
         }
     }
     
-
+    
     if (self.currentActiveNVC)
     {
         [self.currentActiveNVC.view removeFromSuperview];
@@ -895,6 +898,9 @@ static NSMutableArray *allInstances;
 
 - (void)addGestures
 {
+    if ( IS_IPAD_LANDSCAPE )
+        return;
+    
     if (self.overlayView)
     {
         [self.overlayView removeFromSuperview];
@@ -908,8 +914,8 @@ static NSMutableArray *allInstances;
     frame.size = self.currentActiveNVC.view.bounds.size;
     self.overlayView.frame = frame;
     self.overlayView.layer.zPosition = 10000;
-    self.overlayView.backgroundColor = [UIColor clearColor];
-
+    self.overlayView.backgroundColor = [UIColor redColor];
+    
     [self.currentActiveNVC.view addSubview:self.overlayView];
     
     [self.overlayView addGestureRecognizer:self.tapGesture];
@@ -959,13 +965,13 @@ static NSMutableArray *allInstances;
 - (void)enableGestures
 {
     self.tapGesture.enabled = YES;
-//    self.panGesture.enabled = YES;
+    //    self.panGesture.enabled = YES;
 }
 
 - (void)desableGestures
 {
     self.tapGesture.enabled = NO;
-//    self.panGesture.enabled = NO;
+    //    self.panGesture.enabled = NO;
 }
 
 /*----------------------------------------------------*/
@@ -1038,7 +1044,7 @@ static NSMutableArray *allInstances;
                 {
                     [self openLeftMenu];
                 }
-
+                
             }
             if (panningState == AMSlidePanningStateLeft)
             {
@@ -1074,7 +1080,7 @@ static NSMutableArray *allInstances;
             if (panningView.frame.origin.x + translation.x < 0)
             {
                 panningState = AMSlidePanningStateLeft;
-
+                
                 [self rightMenuWillReveal];
                 if (self.menuState == AMSlideMenuClosed)
                 {
@@ -1085,7 +1091,7 @@ static NSMutableArray *allInstances;
             else if(panningView.frame.origin.x + translation.x > 0)
             {
                 panningState = AMSlidePanningStateRight;
-
+                
                 [self leftMenuWillReveal];
                 if (self.menuState == AMSlideMenuClosed)
                 {
@@ -1129,10 +1135,10 @@ static NSMutableArray *allInstances;
                 [self closeRightMenu];
             }
             else if (self.view.frame.size.width - (panningView.frame.origin.x + panningView.frame.size.width + translation.x) < [self rightMenuWidth] &&
-                panningView.frame.origin.x <= 0)
+                     panningView.frame.origin.x <= 0)
             {
                 [panningView setCenter:CGPointMake([panningView center].x + translation.x, [panningView center].y)];
-
+                
                 [self configure3DTransformForMenu:AMSlideMenuRight panningView:panningView];
             }
         }
@@ -1187,7 +1193,7 @@ static NSMutableArray *allInstances;
     float cy = 0;
     float cz = 0;
     float opacity = 0;
-
+    
     /********************************************* DEEPNESS EFFECT *******************************************************/
     if (menu == AMSlideMenuLeft && panningView.frame.origin.x != 0 && [self deepnessForLeftMenu])
     {
@@ -1234,7 +1240,7 @@ static NSMutableArray *allInstances;
     if (menu == AMSlideMenuLeft)
     {
         CGFloat alpha = [self maxDarknessWhileLeftMenu] * (panningView.frame.origin.x / [self leftMenuWidth]);
-
+        
         self.darknessView.alpha = alpha;
     }
     else if(menu == AMSlideMenuRight)
